@@ -65,15 +65,53 @@ def execute_pop(cmd):
     regs[cmd[1]] = stack.pop()
     regs['sp'] -= 1
 
+execute_next = True
+
+def execute_ife(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) == get_value(cmd[2])):
+        execute_next = False
+
+def execute_ifn(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) != get_value(cmd[2])):
+        execute_next = False
+
+def execute_ifg(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) > get_value(cmd[2])):
+        execute_next = False
+
+def execute_ifl(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) < get_value(cmd[2])):
+        execute_next = False
+
+def execute_ifge(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) >= get_value(cmd[2])):
+        execute_next = False
+
+def execute_ifle(cmd):
+    global execute_next
+    if not(get_value(cmd[1]) <= get_value(cmd[2])):
+        execute_next = False
+
 protos = [
-    ['mov',  ['reg', 'reg|num'], execute_mov],
-    ['add',  ['reg', 'reg|num'], execute_add],
-    ['sub',  ['reg', 'reg|num'], execute_sub],
-    ['mul',  ['reg', 'reg|num'], execute_mul],
-    ['div',  ['reg', 'reg|num'], execute_div],
-    ['ret',  [],                 execute_ret],
-    ['push', ['reg|num'],        execute_push],
-    ['pop',  ['reg'],            execute_pop],
+    ['mov',  ['reg', 'reg|num'],     execute_mov],
+    ['add',  ['reg', 'reg|num'],     execute_add],
+    ['sub',  ['reg', 'reg|num'],     execute_sub],
+    ['mul',  ['reg', 'reg|num'],     execute_mul],
+    ['div',  ['reg', 'reg|num'],     execute_div],
+    ['ret',  [],                     execute_ret],
+    ['push', ['reg|num'],            execute_push],
+    ['pop',  ['reg'],                execute_pop],
+    ['ife',  ['reg|num', 'reg|num'], execute_ife],
+    ['ifn',  ['reg|num', 'reg|num'], execute_ifn],
+    ['ifg',  ['reg|num', 'reg|num'], execute_ifg],
+    ['ifl',  ['reg|num', 'reg|num'], execute_ifl],
+    ['ifge', ['reg|num', 'reg|num'], execute_ifge],
+    ['ifle', ['reg|num', 'reg|num'], execute_ifle],
 ]
 
 def validate(proto, cmd):
@@ -92,6 +130,10 @@ def validate(proto, cmd):
     return True 
 
 def execute_command(cmd):
+    global execute_next
+    if not(execute_next):
+        execute_next = True
+        return
     for proto in protos:
         if validate(proto, cmd):
             proto[2](cmd)

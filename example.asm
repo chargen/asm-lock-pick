@@ -7,4 +7,6 @@ push 3
 pop c
 mov rv a
 add rv c
+ifg a b
+add rv 10
 ret
