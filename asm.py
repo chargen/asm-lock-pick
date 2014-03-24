@@ -39,37 +39,64 @@ def get_value(arg):
         return regs[arg]
     assert False
 
+def execute_mov(cmd):
+    regs[cmd[1]] = get_value(cmd[2])
+
+def execute_add(cmd):
+    regs[cmd[1]] += get_value(cmd[2])
+
+def execute_sub(cmd):
+    regs[cmd[1]] -= get_value(cmd[2])
+
+def execute_mul(cmd):
+    regs[cmd[1]] *= get_value(cmd[2])
+
+def execute_div(cmd):
+    regs[cmd[1]] /= get_value(cmd[2])
+
+def execute_ret(cmd):
+    print regs['rv']
+
+def execute_push(cmd):
+    stack.append(get_value(cmd[1]))
+    regs['sp'] += 1
+
+def execute_pop(cmd):
+    regs[cmd[1]] = stack.pop()
+    regs['sp'] -= 1
+
+protos = [
+    ['mov',  ['reg', 'reg|num'], execute_mov],
+    ['add',  ['reg', 'reg|num'], execute_add],
+    ['sub',  ['reg', 'reg|num'], execute_sub],
+    ['mul',  ['reg', 'reg|num'], execute_mul],
+    ['div',  ['reg', 'reg|num'], execute_div],
+    ['ret',  [],                 execute_ret],
+    ['push', ['reg|num'],        execute_push],
+    ['pop',  ['reg'],            execute_pop],
+]
+
+def validate(proto, cmd):
+    if proto[0] != cmd[0]:
+        return False
+    if len(proto[1]) + 1 != len(cmd):
+        return False
+    for i, arg in enumerate(proto[1]):
+        if arg == 'reg' and not(is_reg(cmd[i + 1])):
+            return False
+        if arg == 'num' and not(is_num(cmd[i + 1])):
+            return False
+        if arg == 'reg|num' or arg == 'num|reg':
+              if not(is_reg(cmd[i + 1])) and not(is_num(cmd[i + 1])):
+                  return False
+    return True 
+
 def execute_command(cmd):
-    if cmd[0] == 'mov':
-        assert is_reg(cmd[1])
-        assert is_reg(cmd[2]) or is_num(cmd[2])
-        regs[cmd[1]] = get_value(cmd[2])
-    elif cmd[0] == 'add':
-        assert is_reg(cmd[1])
-        assert is_reg(cmd[2]) or is_num(cmd[2])
-        regs[cmd[1]] += get_value(cmd[2])
-    elif cmd[0] == 'sub':
-        assert is_reg(cmd[1])
-        assert is_reg(cmd[2]) or is_num(cmd[2])
-        regs[cmd[1]] -= get_value(cmd[2])
-    elif cmd[0] == 'mul':
-        assert is_reg(cmd[1])
-        assert is_reg(cmd[2]) or is_num(cmd[2])
-        regs[cmd[1]] *= get_value(cmd[2])
-    elif cmd[0] == 'div':
-        assert is_reg(cmd[1])
-        assert is_reg(cmd[2]) or is_num(cmd[2])
-        regs[cmd[1]] /= get_value(cmd[2])
-    elif cmd[0] == 'ret':
-        print regs['rv']
-    elif cmd[0] == 'push':
-        assert is_reg(cmd[1]) or is_num(cmd[1])
-        stack.append(get_value(cmd[1]))
-        regs['sp'] += 1
-    elif cmd[0] == 'pop':
-        assert is_reg(cmd[1])
-        regs[cmd[1]] = stack.pop()
-        regs['sp'] -= 1
+    for proto in protos:
+        if validate(proto, cmd):
+            proto[2](cmd)
+            return
+    assert False
 
 def execute(cmds):
     for cmd in cmds:
