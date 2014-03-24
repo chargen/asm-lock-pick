@@ -12,7 +12,10 @@ regs = {
   'i' : 0,
   'j' : 0,
   'rv' : 0,
+  'sp' : 0,
 }
+
+stack = []
 
 def is_num(arg):
     try:
@@ -59,6 +62,14 @@ def execute_command(cmd):
         regs[cmd[1]] /= get_value(cmd[2])
     elif cmd[0] == 'ret':
         print regs['rv']
+    elif cmd[0] == 'push':
+        assert is_reg(cmd[1]) or is_num(cmd[1])
+        stack.append(get_value(cmd[1]))
+        regs['sp'] += 1
+    elif cmd[0] == 'pop':
+        assert is_reg(cmd[1])
+        regs[cmd[1]] = stack.pop()
+        regs['sp'] -= 1
 
 def execute(cmds):
     for cmd in cmds:
