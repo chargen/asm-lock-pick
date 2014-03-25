@@ -23,6 +23,8 @@ class Executer():
         self.next_cmd = 0
         self.execute_next = True
 
+        self.labels = {}
+
         def execute_mov(cmd):
             self.regs[cmd[1]] = self.get_value(cmd[2])
 
@@ -85,6 +87,9 @@ class Executer():
         def execute_save(cmd):
             self.memory[self.get_value(cmd[1])] = self.get_value(cmd[2])
 
+        def execute_jmp(cmd):
+            self.next_cmd = self.labels[cmd[1]] - 1
+
         self.protos = [
             ['mov',  ['reg', 'reg|num'],     execute_mov],
             ['add',  ['reg', 'reg|num'],     execute_add],
@@ -104,6 +109,7 @@ class Executer():
             ['ifle', ['reg|num', 'reg|num'], execute_ifle],
             ['load', ['reg', 'reg|num'],     execute_load],
             ['save', ['reg|num', 'reg|num'], execute_save],
+            ['jmp',  ['label'],              execute_jmp]
         ]
 
     def is_reg(self, arg):
@@ -115,6 +121,9 @@ class Executer():
             return 0 <= arg <= 255
         except ValueError:
             return False
+
+    def is_label(self, arg):
+        return arg.isalnum()
 
     def get_value(self, arg):
         if self.is_num(arg):
@@ -136,6 +145,8 @@ class Executer():
                     acceptable = True
                 if type == 'num' and self.is_num(cmd[i + 1]):
                     acceptable = True
+                if type == 'label' and self.is_label(cmd[i + 1]):
+                    acceptable = True
             if not(acceptable):
                 return False
         return True 
@@ -152,6 +163,10 @@ class Executer():
         assert False
 
     def execute(self, cmds):
+        for i, cmd in enumerate(cmds):
+            if cmd[0][-1] == ':':
+                self.labels[cmd[0][0:-1]] = i - len(self.labels)
+        cmds = [cmd for cmd in cmds if cmd[0][-1] != ':']
         while self.next_cmd < len(cmds):
             self.execute_command(cmds[self.next_cmd])
             self.next_cmd += 1
@@ -163,7 +178,8 @@ def main():
     with open(sys.argv[1], 'r+') as file:
         cmds = []
         for line in file:
-            if line.lstrip()[0] == '#':
+            line = line.strip()
+            if line == '' or line[0] == '#':
                 continue
             cmd = line.split()
             cmds.append(cmd)
