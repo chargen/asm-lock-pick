@@ -3,9 +3,15 @@
 import sys
 
 class Executer():
-    def __init__(self):
+    def __init__(self, stack):
+        # FIXME: word_size == memory_size == 0xff + 1
+        self.word_size = 0xff + 1
         self.memory_size = 0xff + 1
+
         self.memory = [0 for i in xrange(self.memory_size)]
+
+        for i, s in enumerate(stack):
+            self.memory[-(i + 1)] = ord(s)
 
         self.regs = {
             'a' : 0,
@@ -17,7 +23,7 @@ class Executer():
             'i' : 0,
             'j' : 0,
             'rv' : 0,
-            'sp' : self.memory_size - 1,
+            'sp' : self.memory_size - 1 - len(stack),
         }
 
         self.next_cmd = 0
@@ -30,21 +36,27 @@ class Executer():
 
         def execute_add(cmd):
             self.regs[cmd[1]] += self.get_value(cmd[2])
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_sub(cmd):
             self.regs[cmd[1]] -= self.get_value(cmd[2])
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_mul(cmd):
             self.regs[cmd[1]] *= self.get_value(cmd[2])
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_div(cmd):
             self.regs[cmd[1]] /= self.get_value(cmd[2])
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_inc(cmd):
             self.regs[cmd[1]] += 1
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_dec(cmd):
             self.regs[cmd[1]] -= 1
+            self.regs[cmd[1]] %= self.word_size
 
         def execute_ret(cmd):
             print self.regs['rv']
@@ -118,7 +130,7 @@ class Executer():
     def is_num(self, arg):
         try:
             arg = int(arg, 0)
-            return 0 <= arg <= 255
+            return 0 <= arg < self.word_size
         except ValueError:
             return False
 
@@ -172,8 +184,8 @@ class Executer():
             self.next_cmd += 1
 
 def main():
-    if len(sys.argv) != 2:
-        print 'Usage: %s <file>' % (sys.argv[0],)
+    if len(sys.argv) != 3:
+        print 'Usage: %s <file> <stack>' % (sys.argv[0],)
         return
     with open(sys.argv[1], 'r+') as file:
         cmds = []
@@ -183,7 +195,7 @@ def main():
                 continue
             cmd = line.split()
             cmds.append(cmd)
-        executer = Executer()
+        executer = Executer(sys.argv[2])
         executer.execute(cmds)
 
 if __name__ == '__main__':

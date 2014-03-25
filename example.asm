@@ -1,4 +1,17 @@
 start:
+  pop rv
+#  ret
+
+  mov x 10
+  sub x 20
+  mov rv x
+#  ret
+
+  mov x 254
+  add x 10
+  mov rv x
+#  ret
+
   mov z 1
   mov i 0
 
