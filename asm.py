@@ -2,6 +2,8 @@
 
 import sys
 
+memory_size = 0xff + 1
+
 regs = {
   'a' : 0,
   'b' : 0,
@@ -12,29 +14,28 @@ regs = {
   'i' : 0,
   'j' : 0,
   'rv' : 0,
-  'sp' : 0,
+  'sp' : memory_size - 1,
 }
 
-stack = []
+memory = [0 for i in xrange(memory_size)]
 
-def is_num(arg):
-    try:
-        arg = int(arg)
-        return 0 <= arg <= 255
-    except ValueError:
-        return False
+execute_next = True
 
 def is_reg(arg):
     return arg in regs.keys()
 
-assert is_num(10)
-assert not(is_num(256))
-assert not(is_num(-1))
-assert is_reg('rv')
+def is_num(arg):
+    try:
+        arg = int(arg, 0)
+        return 0 <= arg <= 255
+    except ValueError:
+        return False
+
+assert is_num('0x00')
 
 def get_value(arg):
     if is_num(arg):
-        return int(arg)
+        return int(arg, 0)
     elif is_reg(arg):
         return regs[arg]
     assert False
@@ -58,14 +59,12 @@ def execute_ret(cmd):
     print regs['rv']
 
 def execute_push(cmd):
-    stack.append(get_value(cmd[1]))
-    regs['sp'] += 1
-
-def execute_pop(cmd):
-    regs[cmd[1]] = stack.pop()
+    memory[regs['sp']] = get_value(cmd[1])
     regs['sp'] -= 1
 
-execute_next = True
+def execute_pop(cmd):
+    regs['sp'] += 1
+    regs[cmd[1]] = memory[regs['sp']]
 
 def execute_ife(cmd):
     global execute_next
@@ -97,6 +96,12 @@ def execute_ifle(cmd):
     if not(get_value(cmd[1]) <= get_value(cmd[2])):
         execute_next = False
 
+def execute_load(cmd):
+    regs[cmd[1]] = memory[get_value(cmd[2])]
+
+def execute_save(cmd):
+    memory[get_value(cmd[1])] = get_value(cmd[2])
+
 protos = [
     ['mov',  ['reg', 'reg|num'],     execute_mov],
     ['add',  ['reg', 'reg|num'],     execute_add],
@@ -112,6 +117,8 @@ protos = [
     ['ifl',  ['reg|num', 'reg|num'], execute_ifl],
     ['ifge', ['reg|num', 'reg|num'], execute_ifge],
     ['ifle', ['reg|num', 'reg|num'], execute_ifle],
+    ['load', ['reg', 'reg|num'],     execute_load],
+    ['save', ['reg|num', 'reg|num'], execute_save],
 ]
 
 def validate(proto, cmd):
@@ -138,6 +145,7 @@ def execute_command(cmd):
         if validate(proto, cmd):
             proto[2](cmd)
             return
+    print cmd
     assert False
 
 def execute(cmds):
@@ -150,6 +158,8 @@ def main():
         return
     with open(sys.argv[1], 'r+') as file:
         for line in file:
+            if line.lstrip()[0] == '#':
+                continue
             cmd = line.split()
             execute_command(cmd)
 
