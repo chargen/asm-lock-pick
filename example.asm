@@ -12,7 +12,7 @@ add rv 10
 save 0x00 123
 save 0x01 1
 mov x 0x00
-add x 1
+inc x
 load y x
 add rv y
 ret

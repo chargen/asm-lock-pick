@@ -55,6 +55,12 @@ def execute_mul(cmd):
 def execute_div(cmd):
     regs[cmd[1]] /= get_value(cmd[2])
 
+def execute_inc(cmd):
+    regs[cmd[1]] += 1
+
+def execute_dec(cmd):
+    regs[cmd[1]] -= 1
+
 def execute_ret(cmd):
     print regs['rv']
 
@@ -108,6 +114,8 @@ protos = [
     ['sub',  ['reg', 'reg|num'],     execute_sub],
     ['mul',  ['reg', 'reg|num'],     execute_mul],
     ['div',  ['reg', 'reg|num'],     execute_div],
+    ['inc',  ['reg'],                execute_inc],
+    ['dec',  ['reg'],                execute_dec],
     ['ret',  [],                     execute_ret],
     ['push', ['reg|num'],            execute_push],
     ['pop',  ['reg'],                execute_pop],
