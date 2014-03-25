@@ -31,6 +31,8 @@ class Executer():
 
         self.labels = {}
 
+        self.returned = False
+
         def execute_mov(cmd):
             self.regs[cmd[1]] = self.get_value(cmd[2])
 
@@ -60,6 +62,7 @@ class Executer():
 
         def execute_ret(cmd):
             print self.regs['rv']
+            self.returned = True
 
         def execute_push(cmd):
             self.memory[self.regs['sp']] = self.get_value(cmd[1])
@@ -179,7 +182,7 @@ class Executer():
             if cmd[0][-1] == ':':
                 self.labels[cmd[0][0:-1]] = i - len(self.labels)
         cmds = [cmd for cmd in cmds if cmd[0][-1] != ':']
-        while self.next_cmd < len(cmds):
+        while self.next_cmd < len(cmds) and not(self.returned):
             self.execute_command(cmds[self.next_cmd])
             self.next_cmd += 1
 
