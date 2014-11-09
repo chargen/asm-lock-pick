@@ -1,14 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import sys
 
-class Executer():
+class Executer:
     def __init__(self, stack):
-        # FIXME: word_size == memory_size == 0xff + 1
         self.word_size = 0xff + 1
-        self.memory_size = 0xff + 1
+        self.memory_size = self.word_size
 
-        self.memory = [0 for i in xrange(self.memory_size)]
+        self.memory = [0 for i in range(self.memory_size)]
 
         for i, s in enumerate(stack):
             self.memory[-(i + 1)] = ord(s)
@@ -61,7 +60,7 @@ class Executer():
             self.regs[cmd[1]] %= self.word_size
 
         def execute_ret(cmd):
-            print self.regs['rv']
+            print(self.regs['rv'])
             self.returned = True
 
         def execute_push(cmd):
@@ -128,7 +127,7 @@ class Executer():
         ]
 
     def is_reg(self, arg):
-        return arg in self.regs.keys()
+        return arg in self.regs
 
     def is_num(self, arg):
         try:
@@ -174,7 +173,7 @@ class Executer():
             if self.validate(proto, cmd):
                 proto[2](cmd)
                 return
-        print cmd
+        print(cmd)
         assert False
 
     def execute(self, cmds):
@@ -188,7 +187,7 @@ class Executer():
 
 def main():
     if len(sys.argv) != 3:
-        print 'Usage: %s <file> <stack>' % (sys.argv[0],)
+        print('Usage: %s <file> <stack>' % (sys.argv[0],))
         return
     with open(sys.argv[1], 'r+') as file:
         cmds = []
