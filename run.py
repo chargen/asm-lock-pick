@@ -69,30 +69,32 @@ class Executer:
 
         def execute_pop(cmd):
             self.regs['sp'] += 1
+            assert self.regs['sp'] < self.memory_size, 'Stack Overflow'
+
             self.regs[cmd[1]] = self.memory[self.regs['sp']]
 
         def execute_ife(cmd):
-            if not(self.get_value(cmd[1]) == self.get_value(cmd[2])):
+            if self.get_value(cmd[1]) != self.get_value(cmd[2]):
                 self.execute_next = False
 
         def execute_ifn(cmd):
-            if not(self.get_value(cmd[1]) != self.get_value(cmd[2])):
+            if self.get_value(cmd[1]) == self.get_value(cmd[2]):
                 self.execute_next = False
 
         def execute_ifg(cmd):
-            if not(self.get_value(cmd[1]) > self.get_value(cmd[2])):
+            if not (self.get_value(cmd[1]) > self.get_value(cmd[2])):
                 self.execute_next = False
 
         def execute_ifl(cmd):
-            if not(self.get_value(cmd[1]) < self.get_value(cmd[2])):
+            if not (self.get_value(cmd[1]) < self.get_value(cmd[2])):
                 self.execute_next = False
 
         def execute_ifge(cmd):
-            if not(self.get_value(cmd[1]) >= self.get_value(cmd[2])):
+            if not (self.get_value(cmd[1]) >= self.get_value(cmd[2])):
                 self.execute_next = False
 
         def execute_ifle(cmd):
-            if not(self.get_value(cmd[1]) <= self.get_value(cmd[2])):
+            if not (self.get_value(cmd[1]) <= self.get_value(cmd[2])):
                 self.execute_next = False
 
         def execute_load(cmd):
@@ -157,22 +159,24 @@ class Executer:
             for type in types:
                 if type == 'reg' and self.is_reg(cmd[i + 1]):
                     acceptable = True
-                if type == 'num' and self.is_num(cmd[i + 1]):
+                elif type == 'num' and self.is_num(cmd[i + 1]):
                     acceptable = True
-                if type == 'label' and self.is_label(cmd[i + 1]):
+                elif type == 'label' and self.is_label(cmd[i + 1]):
                     acceptable = True
-            if not(acceptable):
+
+            if not acceptable:
                 return False
         return True 
 
     def execute_command(self, cmd):
-        if not(self.execute_next):
+        if not self.execute_next:
             self.execute_next = True
             return
         for proto in self.protos:
             if self.validate(proto, cmd):
                 proto[2](cmd)
                 return
+
         print(cmd)
         assert False
 
@@ -181,7 +185,7 @@ class Executer:
             if cmd[0][-1] == ':':
                 self.labels[cmd[0][0:-1]] = i - len(self.labels)
         cmds = [cmd for cmd in cmds if cmd[0][-1] != ':']
-        while self.next_cmd < len(cmds) and not(self.returned):
+        while self.next_cmd < len(cmds) and not self.returned:
             self.execute_command(cmds[self.next_cmd])
             self.next_cmd += 1
 
